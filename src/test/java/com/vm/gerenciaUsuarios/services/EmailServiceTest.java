@@ -10,31 +10,25 @@ public class EmailServiceTest {
 
     @Test
     void testEnviaEmailUpdateTrue() throws Exception {
-        // Arrange
         boolean update = true;
         String email = "teste@exemplo.com";
 
-        // Act and Assert
         String output = SystemLambda.tapSystemOut(() -> {
             emailService.enviaEmail(update, email);
         });
 
-        // Assert
         assertTrue(output.contains("O cadastro foi realizado e foi enviado um email para " + email));
     }
 
     @Test
     void testEnviaEmailUpdateFalse() throws Exception {
-        // Arrange
         boolean update = false;
         String email = "teste@exemplo.com";
 
-        // Act and Assert
         String output = SystemLambda.tapSystemOut(() -> {
             emailService.enviaEmail(update, email);
         });
 
-        // Assert
         assertTrue(output.contains("A edição foi realizada e foi enviado um email para " + email));
     }
 }
