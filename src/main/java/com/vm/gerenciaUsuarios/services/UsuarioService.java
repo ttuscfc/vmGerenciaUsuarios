@@ -19,10 +19,12 @@ import java.util.Optional;
 public class UsuarioService {
 
     UsuarioRepository usuarioRepository;
+    EmailService emailService;
 
     @Autowired
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, EmailService emailService) {
         this.usuarioRepository = usuarioRepository;
+        this.emailService = emailService;
     }
 
     public List<Usuario> findAll() {
@@ -59,13 +61,17 @@ public class UsuarioService {
     public Usuario newUser(UsuarioDto usuarioDto) {
         Usuario usuario = new Usuario();
         BeanUtils.copyProperties(usuarioDto, usuario);
-        return usuarioRepository.save(usuario);
+        Usuario newUser = usuarioRepository.save(usuario);
+        emailService.enviaEmail(false, newUser.getEmail());
+        return newUser;
     }
 
     public Usuario updateUser(Long id, UsuarioDto usuarioDto) {
         Usuario usuario = findById(id);
         BeanUtils.copyProperties(usuarioDto, usuario);
-        return usuarioRepository.save(usuario);
+        Usuario updateUser = usuarioRepository.save(usuario);
+        emailService.enviaEmail(true, updateUser.getEmail());
+        return updateUser;
     }
 
     public void delete(Long id) {
