@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,17 +27,87 @@ public class UsuarioServiceTest {
     private UsuarioService usuarioService;
 
     @Test
-    void testFindAll() {
-        Usuario usuario = new Usuario("João", "joao@email.com", "senha123");
-        usuario.setId(1L);
-        List<Usuario> mockUsuarios = List.of(usuario);
+    public void testFindAllWithNome() {
+        String nome = "João";
+        Usuario usuario1 = new Usuario("João Silva", "joao@email.com", "1234");
+        usuario1.setId(1L);
+        Usuario usuario2 = new Usuario("João Souza", "joaos@email.com", "5678");
+        usuario2.setId(2L);
+
+        List<Usuario> mockUsuarios = Arrays.asList(
+                usuario1,
+                usuario2
+        );
+
+        Mockito.when(usuarioRepository.findByNomeContainingIgnoreCase(nome)).thenReturn(mockUsuarios);
+
+        List<Usuario> result = usuarioService.findAll(nome, 0, 10);
+
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals("João Silva", result.get(0).getNome());
+        Mockito.verify(usuarioRepository, Mockito.times(1)).findByNomeContainingIgnoreCase(nome);
+        Mockito.verify(usuarioRepository, Mockito.never()).findAll();
+    }
+
+    @Test
+    public void testFindAllWithoutNome() {
+        Usuario usuario1 = new Usuario( "Ana Silva", "ana@email.com", "1234");
+        usuario1.setId(1L);
+        Usuario usuario2 = new Usuario("Carlos Souza", "carlos@email.com", "5678");
+        usuario2.setId(2L);
+        List<Usuario> mockUsuarios = Arrays.asList(
+                usuario1,
+                usuario2
+        );
+
         Mockito.when(usuarioRepository.findAll()).thenReturn(mockUsuarios);
 
-        List<Usuario> usuarios = usuarioService.findAll();
+        List<Usuario> result = usuarioService.findAll(null, 0, 10);
 
-        Assertions.assertNotNull(usuarios);
-        Assertions.assertEquals(1, usuarios.size());
-        Assertions.assertEquals("João", usuarios.get(0).getNome());
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals("Ana Silva", result.get(0).getNome());
+        Mockito.verify(usuarioRepository, Mockito.times(1)).findAll();
+        Mockito.verify(usuarioRepository, Mockito.never()).findByNomeContainingIgnoreCase(Mockito.anyString());
+    }
+
+    @Test
+    public void testPaginationWithinBounds() {
+        Usuario usuario1 = new Usuario("Ana Silva", "ana@email.com", "1234");
+        usuario1.setId(1L);
+        Usuario usuario2 = new Usuario("Carlos Souza", "carlos@email.com", "5678");
+        usuario2.setId(2L);
+        Usuario usuario3 = new Usuario("João Oliveira", "joao@email.com", "7890");
+        usuario3.setId(3L);
+        List<Usuario> mockUsuarios = Arrays.asList(
+                usuario1,
+                usuario2,
+                usuario3
+        );
+
+        Mockito.when(usuarioRepository.findAll()).thenReturn(mockUsuarios);
+
+        List<Usuario> result = usuarioService.findAll(null, 1, 2); // Página 1, 2 itens por página
+
+        Assertions.assertEquals(1, result.size());
+        Assertions.assertEquals("João Oliveira", result.get(0).getNome());
+    }
+
+    @Test
+    public void testPaginationOutOfBounds() {
+        Usuario usuario1 = new Usuario("Ana Silva", "ana@email.com", "1234");
+        usuario1.setId(1L);
+        Usuario usuario2 = new Usuario("Carlos Souza", "carlos@email.com", "5678");
+        usuario2.setId(2L);
+        List<Usuario> mockUsuarios = Arrays.asList(
+                usuario1,
+                usuario2
+        );
+
+        Mockito.when(usuarioRepository.findAll()).thenReturn(mockUsuarios);
+
+        List<Usuario> result = usuarioService.findAll(null, 10, 2);
+
+        Assertions.assertTrue(result.isEmpty());
     }
 
     @Test

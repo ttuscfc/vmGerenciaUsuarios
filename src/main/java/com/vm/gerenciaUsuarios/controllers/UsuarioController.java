@@ -22,8 +22,11 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public ResponseEntity findAll() {
-        List<Usuario> users = usuarioService.findAll();
+    public ResponseEntity findAll(
+            @RequestParam(value = "nome", required = false) String nome,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        List<Usuario> users = usuarioService.findAll(nome, page, size);
         return ResponseEntity.ok(users);
     }
 

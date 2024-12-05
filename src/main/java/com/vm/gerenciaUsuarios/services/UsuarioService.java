@@ -3,10 +3,12 @@ package com.vm.gerenciaUsuarios.services;
 import com.vm.gerenciaUsuarios.dto.UsuarioDto;
 import com.vm.gerenciaUsuarios.models.Usuario;
 import com.vm.gerenciaUsuarios.repositories.UsuarioRepository;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,8 +24,23 @@ public class UsuarioService {
         this.emailService = emailService;
     }
 
-    public List<Usuario> findAll() {
-        return usuarioRepository.findAll();
+    public List<Usuario> findAll(String nome, int page, int size) {
+        List<Usuario> usuarios;
+
+        if (StringUtils.isNotBlank(nome)) {
+            usuarios = usuarioRepository.findByNomeContainingIgnoreCase(nome);
+        } else {
+            usuarios = usuarioRepository.findAll();
+        }
+
+        int start = page * size;
+        int end = Math.min(start + size, usuarios.size());
+
+        if (start > usuarios.size()) {
+            return Collections.emptyList(); // Retorna lista vazia se a página estiver fora do limite
+        }
+
+        return usuarios.subList(start, end);
     }
 
     public Usuario findById(Long id) {
